@@ -56,11 +56,14 @@ public struct Exercise: Identifiable, Hashable {
     public let kind: ExerciseKind
     /// Bắt buộc đúng quãng tám, kể cả khi người học chọn chế độ dễ.
     public let requiresExactOctave: Bool
+    /// Cho phép hiện phím gợi ý (tắt với bài luyện đọc nốt).
+    public let showHints: Bool
 
-    public init(_ kind: ExerciseKind, requiresExactOctave: Bool = false, id: UUID = UUID()) {
+    public init(_ kind: ExerciseKind, requiresExactOctave: Bool = false, showHints: Bool = true, id: UUID = UUID()) {
         self.id = id
         self.kind = kind
         self.requiresExactOctave = requiresExactOctave
+        self.showHints = showHints
     }
 
     /// Bài giới thiệu không bị trừ tim.

@@ -448,4 +448,44 @@ final class TheoryTests: XCTestCase {
         XCTAssertEqual(MIDIByteParser.decodeUMP(word), .noteOn(note: 60, velocity: 100, channel: 3))
         XCTAssertNil(MIDIByteParser.decodeUMP(0x4093_3C64))
     }
+
+    func testUMPMultiWordPacketsAreSkipped() {
+        // SysEx 7-bit (MT=3, 2 từ) có từ thứ hai trông giống MIDI 1.0, sau đó là một note on thật.
+        let words: [UInt32] = [0x3016_7E01, 0x2090_3C64, 0x2090_4050]
+        XCTAssertEqual(MIDIByteParser.decodeUMPWords(words), [.noteOn(note: 64, velocity: 80, channel: 0)])
+    }
+}
+
+final class GlyphTests: XCTestCase {
+    func testPathParser() {
+        let cmds = SVGPathParser.parse("M1 2 L3-4 H5 V6 C1 1 2 2 3 3 Q4 4 5 5 Z")
+        XCTAssertEqual(cmds, [.move(1, 2), .line(3, -4), .line(5, -4), .line(5, 6),
+                              .cubic(1, 1, 2, 2, 3, 3), .quad(4, 4, 5, 5), .close])
+    }
+
+    func testGlyphsParsed() {
+        let all: [MusicGlyph] = [.gClef, .fClef, .noteheadBlack, .noteheadHalf, .noteheadWhole, .restWhole, .restHalf,
+                                 .restQuarter, .rest8th, .rest16th, .flag8thUp, .flag8thDown, .flag16thUp, .flag16thDown,
+                                 .sharp, .flat, .natural, .dot]
+        for g in all {
+            XCTAssertGreaterThan(g.commands.count, 2)
+            XCTAssertGreaterThan(g.advance, 0)
+        }
+        // Khóa Sol kéo dài khoảng 7 khe, gốc nằm trên dòng Sol.
+        let b = SVGPathParser.bounds(MusicGlyph.gClef.commands)!
+        XCTAssertLessThan(b.minY, -3.5)
+        XCTAssertGreaterThan(b.maxY, 1.5)
+        // Đầu nốt cao đúng 1 khe.
+        let n = SVGPathParser.bounds(MusicGlyph.noteheadBlack.commands)!
+        XCTAssertEqual(n.maxY - n.minY, 1, accuracy: 0.05)
+    }
+
+    func testDurationsToGlyphs() {
+        XCTAssertEqual(MusicGlyph.flagCount(0.5), 1)
+        XCTAssertEqual(MusicGlyph.flagCount(0.75), 1)
+        XCTAssertEqual(MusicGlyph.flagCount(0.25), 2)
+        XCTAssertEqual(MusicGlyph.flagCount(1.5), 0)
+        XCTAssertTrue(MusicGlyph.isDotted(3))
+        XCTAssertFalse(MusicGlyph.isDotted(2))
+    }
 }

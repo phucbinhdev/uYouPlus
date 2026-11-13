@@ -1,0 +1,73 @@
+name: PianoGo
+options:
+  bundleIdPrefix: com.pianogo
+  deploymentTarget:
+    iOS: "15.0"
+  createIntermediateGroups: true
+  developmentLanguage: vi
+
+packages:
+  PianoCore:
+    path: PianoCore
+
+targets:
+  PianoGo:
+    type: application
+    platform: iOS
+    deploymentTarget: "15.0"
+    sources:
+      - path: App
+        excludes:
+          - Info.plist
+    dependencies:
+      - package: PianoCore
+      - sdk: CoreMIDI.framework
+      - sdk: CoreAudioKit.framework
+      - sdk: CoreBluetooth.framework
+      - sdk: AVFoundation.framework
+    info:
+      path: App/Info.plist
+      properties:
+        CFBundleDisplayName: Piano Go
+        CFBundleShortVersionString: "1.0.0"
+        CFBundleVersion: "1"
+        CFBundleDevelopmentRegion: vi
+        LSRequiresIPhoneOS: true
+        UILaunchScreen:
+          UIColorName: AccentColor
+        UIApplicationSupportsIndirectInputEvents: true
+        UIRequiresFullScreen: false
+        UISupportedInterfaceOrientations:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        UISupportedInterfaceOrientations~ipad:
+          - UIInterfaceOrientationPortrait
+          - UIInterfaceOrientationPortraitUpsideDown
+          - UIInterfaceOrientationLandscapeLeft
+          - UIInterfaceOrientationLandscapeRight
+        NSBluetoothAlwaysUsageDescription: Piano Go dùng Bluetooth để kết nối với đàn piano điện (Bluetooth MIDI) như Bora BX20.
+        NSBluetoothPeripheralUsageDescription: Piano Go dùng Bluetooth để kết nối với đàn piano điện (Bluetooth MIDI).
+        ITSAppUsesNonExemptEncryption: false
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: com.pianogo.app
+        PRODUCT_NAME: PianoGo
+        TARGETED_DEVICE_FAMILY: "1,2"
+        SWIFT_VERSION: "5.0"
+        ASSETCATALOG_COMPILER_APPICON_NAME: AppIcon
+        ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME: AccentColor
+        CODE_SIGN_STYLE: Automatic
+        ENABLE_PREVIEWS: YES
+        MARKETING_VERSION: "1.0.0"
+        CURRENT_PROJECT_VERSION: "1"
+
+schemes:
+  PianoGo:
+    build:
+      targets:
+        PianoGo: all
+    run:
+      config: Debug
+    archive:
+      config: Release

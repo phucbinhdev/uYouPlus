@@ -37,15 +37,17 @@ public struct Lesson: Identifiable, Hashable {
     public let kind: LessonKind
     public let blocks: [LessonBlock]
     public let exactOctave: Bool
+    public let hints: Bool
 
     public init(id: String, title: String, subtitle: String, icon: String, kind: LessonKind = .learn,
-                exactOctave: Bool = false, blocks: [LessonBlock]) {
+                exactOctave: Bool = false, hints: Bool = true, blocks: [LessonBlock]) {
         self.id = id
         self.title = title
         self.subtitle = subtitle
         self.icon = icon
         self.kind = kind
         self.exactOctave = exactOctave
+        self.hints = hints
         self.blocks = blocks
     }
 
@@ -62,15 +64,15 @@ public struct Lesson: Identifiable, Hashable {
             switch block {
             case .fixed(let kinds):
                 for kind in kinds {
-                    result.append(Exercise(Lesson.shuffleChoices(kind, rng: &rng), requiresExactOctave: exactOctave))
+                    result.append(Exercise(Lesson.shuffleChoices(kind, rng: &rng), requiresExactOctave: exactOctave, showHints: hints))
                 }
             case .shuffled(let kinds):
                 for kind in kinds.shuffled(using: &rng) {
-                    result.append(Exercise(Lesson.shuffleChoices(kind, rng: &rng), requiresExactOctave: exactOctave))
+                    result.append(Exercise(Lesson.shuffleChoices(kind, rng: &rng), requiresExactOctave: exactOctave, showHints: hints))
                 }
             case .drill(let pool, let count, let styles):
                 result += Lesson.drill(pool: pool, count: count, styles: styles, rng: &rng)
-                    .map { Exercise($0, requiresExactOctave: exactOctave) }
+                    .map { Exercise($0, requiresExactOctave: exactOctave, showHints: hints) }
             }
         }
         return result
@@ -134,7 +136,7 @@ public struct Lesson: Identifiable, Hashable {
     }
 }
 
-public struct Unit: Identifiable, Hashable {
+public struct CourseUnit: Identifiable, Hashable {
     public let id: String
     public let title: String
     public let description: String
@@ -168,9 +170,9 @@ public enum Curriculum {
 
     static let whiteC4toB4 = pitches("C4 D4 E4 F4 G4 A4 B4")
 
-    public static let units: [Unit] = [
+    public static let units: [CourseUnit] = [
         // MARK: Chương 1
-        Unit(id: "u1", title: "Làm quen bàn phím",
+        CourseUnit(id: "u1", title: "Làm quen bàn phím",
              description: "Tìm các nốt Đô Rê Mi Fa Sol La Si trên đàn", colorHex: "58CC02", lessons: [
                 Lesson(id: "u1l1", title: "Nốt Đô", subtitle: "Tìm phím Đô nhờ nhóm 2 phím đen", icon: "music.note", blocks: [
                     .fixed([
@@ -236,7 +238,7 @@ public enum Curriculum {
              ]),
 
         // MARK: Chương 2
-        Unit(id: "u2", title: "Vị trí 5 ngón tay",
+        CourseUnit(id: "u2", title: "Vị trí 5 ngón tay",
              description: "Đặt tay đúng và chơi những giai điệu đầu tiên", colorHex: "1CB0F6", lessons: [
                 Lesson(id: "u2l1", title: "Số ngón tay", subtitle: "Ngón 1 đến ngón 5", icon: "hand.raised.fill", blocks: [
                     .fixed([
@@ -294,7 +296,7 @@ public enum Curriculum {
              ]),
 
         // MARK: Chương 3
-        Unit(id: "u3", title: "Đọc nốt khóa Sol",
+        CourseUnit(id: "u3", title: "Đọc nốt khóa Sol",
              description: "Đọc nốt nhạc trên khuông", colorHex: "CE82FF", lessons: [
                 Lesson(id: "u3l1", title: "Khuông nhạc", subtitle: "Dòng kẻ, khe và khóa Sol", icon: "music.note.house", blocks: [
                     .fixed([
@@ -333,7 +335,7 @@ public enum Curriculum {
                     ]),
                     .drill(pool: pitches("F4 A4 C5 E5"), count: 8, styles: [.findByStaff, .nameQuiz])
                 ]),
-                Lesson(id: "u3l6", title: "Đọc và đánh", subtitle: "Đọc giai điệu trên khuông", icon: "eye.fill", kind: .practice, blocks: [
+                Lesson(id: "u3l6", title: "Đọc và đánh", subtitle: "Đọc giai điệu trên khuông", icon: "eye.fill", kind: .practice, hints: false, blocks: [
                     .fixed([
                         seq("Đọc và đánh", "C4 E4 G4 E4 C4:h"),
                         seq("Đọc và đánh", "G4 A4 B4 C5:h"),
@@ -341,13 +343,13 @@ public enum Curriculum {
                         seq("Đọc và đánh", "E4 G4 F4 A4 G4 B4 C5:h")
                     ])
                 ]),
-                Lesson(id: "u3l7", title: "Ôn tập đọc nốt", subtitle: "Từ Đô giữa đến Sol cao", icon: "star.fill", kind: .review, blocks: [
+                Lesson(id: "u3l7", title: "Ôn tập đọc nốt", subtitle: "Từ Đô giữa đến Sol cao", icon: "star.fill", kind: .review, hints: false, blocks: [
                     .drill(pool: pitches("C4 D4 E4 F4 G4 A4 B4 C5 D5 E5 F5 G5"), count: 12, styles: [.findByStaff, .nameQuiz])
                 ])
              ]),
 
         // MARK: Chương 4
-        Unit(id: "u4", title: "Nhịp điệu",
+        CourseUnit(id: "u4", title: "Nhịp điệu",
              description: "Nốt đen, nốt trắng, nốt tròn và dấu lặng", colorHex: "FF9600", lessons: [
                 Lesson(id: "u4l1", title: "Nốt đen", subtitle: "1 phách", icon: "metronome.fill", blocks: [
                     .fixed([
@@ -398,7 +400,7 @@ public enum Curriculum {
              ]),
 
         // MARK: Chương 5
-        Unit(id: "u5", title: "Phím đen",
+        CourseUnit(id: "u5", title: "Phím đen",
              description: "Dấu thăng ♯ và dấu giáng ♭", colorHex: "FF4B4B", lessons: [
                 Lesson(id: "u5l1", title: "Dấu thăng ♯", subtitle: "Cao lên nửa cung", icon: "number", blocks: [
                     .fixed([
@@ -437,7 +439,7 @@ public enum Curriculum {
              ]),
 
         // MARK: Chương 6
-        Unit(id: "u6", title: "Hợp âm",
+        CourseUnit(id: "u6", title: "Hợp âm",
              description: "Nhiều nốt vang lên cùng lúc", colorHex: "2EC4B6", lessons: [
                 Lesson(id: "u6l1", title: "Hợp âm Đô trưởng", subtitle: "Đô – Mi – Sol", icon: "pianokeys", blocks: [
                     .fixed([
@@ -486,7 +488,7 @@ public enum Curriculum {
              ]),
 
         // MARK: Chương 7
-        Unit(id: "u7", title: "Tay trái & khóa Fa",
+        CourseUnit(id: "u7", title: "Tay trái & khóa Fa",
              description: "Chơi những nốt trầm", colorHex: "E5559A", lessons: [
                 Lesson(id: "u7l1", title: "Khóa Fa", subtitle: "Khóa của những nốt trầm", icon: "music.note", blocks: [
                     .fixed([
@@ -505,7 +507,7 @@ public enum Curriculum {
                         seq("Ngón 5 – 3 – 1", "C3@5 E3@3 G3@1 E3@3 C3:h@5")
                     ])
                 ]),
-                Lesson(id: "u7l3", title: "Đọc nốt khóa Fa", subtitle: "Đô3 đến Sol3", icon: "eye.fill", blocks: [
+                Lesson(id: "u7l3", title: "Đọc nốt khóa Fa", subtitle: "Đô3 đến Sol3", icon: "eye.fill", hints: false, blocks: [
                     .drill(pool: pitches("C3 D3 E3 F3 G3"), count: 8, styles: [.findByStaff, .nameQuiz])
                 ]),
                 Lesson(id: "u7l4", title: "Bè trầm", subtitle: "Đệm cho giai điệu", icon: "waveform", kind: .practice, blocks: [
@@ -518,7 +520,7 @@ public enum Curriculum {
              ]),
 
         // MARK: Chương 8
-        Unit(id: "u8", title: "Gam & bài hát",
+        CourseUnit(id: "u8", title: "Gam & bài hát",
              description: "Kỹ thuật luồn ngón và những bài hát dài hơn", colorHex: "FFC800", lessons: [
                 Lesson(id: "u8l1", title: "Luồn ngón cái", subtitle: "Gam Đô trưởng", icon: "arrow.up.right", blocks: [
                     .fixed([
@@ -572,7 +574,7 @@ public enum Curriculum {
 
     public static func lesson(id: String) -> Lesson? { allLessons.first { $0.id == id } }
 
-    public static func unit(containing lessonID: String) -> Unit? {
+    public static func unit(containing lessonID: String) -> CourseUnit? {
         units.first { $0.lessons.contains { $0.id == lessonID } }
     }
 

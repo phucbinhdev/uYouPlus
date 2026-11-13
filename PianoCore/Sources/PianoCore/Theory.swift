@@ -125,6 +125,28 @@ public struct MIDIByteParser {
         }
     }
 
+    /// Số từ 32-bit của một gói UMP theo loại thông điệp (4 bit cao của từ đầu tiên).
+    public static func umpWordCount(_ firstWord: UInt32) -> Int {
+        switch firstWord >> 28 {
+        case 0x0, 0x1, 0x2, 0x6, 0x7: return 1
+        case 0x3, 0x4, 0x8, 0x9, 0xA: return 2
+        case 0xB, 0xC: return 3
+        default: return 4
+        }
+    }
+
+    /// Giải mã một chuỗi từ UMP, bỏ qua các gói không phải MIDI 1.0 channel voice.
+    public static func decodeUMPWords(_ words: [UInt32]) -> [MIDIMessage] {
+        var out: [MIDIMessage] = []
+        var i = 0
+        while i < words.count {
+            let w = words[i]
+            if let msg = decodeUMP(w) { out.append(msg) }
+            i += umpWordCount(w)
+        }
+        return out
+    }
+
     /// Giải mã một từ Universal MIDI Packet loại 2 (MIDI 1.0 channel voice, 32-bit).
     public static func decodeUMP(_ word: UInt32) -> MIDIMessage? {
         guard (word >> 28) == 0x2 else { return nil }

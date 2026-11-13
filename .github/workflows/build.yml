@@ -1,0 +1,85 @@
+name: Build Piano Go
+
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+    inputs:
+      create_release:
+        description: "Tạo bản phát hành (Release) chứa file .ipa"
+        type: boolean
+        default: false
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  build:
+    name: Kiểm thử & build IPA
+    runs-on: macos-15
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Thông tin Xcode
+        run: |
+          xcodebuild -version
+          swift --version
+
+      - name: Kiểm thử lõi PianoCore
+        run: swift test --package-path PianoCore
+
+      - name: Cài XcodeGen
+        run: brew install xcodegen
+
+      - name: Tạo project Xcode
+        run: xcodegen generate
+
+      - name: Build (không ký)
+        run: |
+          set -o pipefail
+          xcodebuild \
+            -project PianoGo.xcodeproj \
+            -scheme PianoGo \
+            -configuration Release \
+            -sdk iphoneos \
+            -destination 'generic/platform=iOS' \
+            -derivedDataPath build \
+            CODE_SIGNING_ALLOWED=NO \
+            CODE_SIGNING_REQUIRED=NO \
+            CODE_SIGN_IDENTITY="" \
+            build | tee xcodebuild.log | grep -E "error:|warning: .*PianoGo|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" xcodebuild.log
+
+      - name: Đóng gói IPA
+        run: |
+          mkdir -p Payload
+          cp -R build/Build/Products/Release-iphoneos/PianoGo.app Payload/
+          zip -qry PianoGo.ipa Payload
+          ls -la PianoGo.ipa
+
+      - name: Tải lên artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: PianoGo-ipa
+          path: PianoGo.ipa
+          if-no-files-found: error
+
+      - name: Lưu log khi lỗi
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: xcodebuild-log
+          path: xcodebuild.log
+          if-no-files-found: ignore
+
+      - name: Tạo Release
+        if: ${{ startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release) }}
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('build-{0}', github.run_number) }}
+          name: Piano Go ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('build {0}', github.run_number) }}
+          files: PianoGo.ipa
+          prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
