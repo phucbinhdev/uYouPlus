@@ -144,6 +144,13 @@ public struct TimedResult: Hashable {
     /// Nốt sai cao độ hoặc gõ thừa.
     public var wrong: Int
 
+    public init(perfect: Int, good: Int, miss: Int, wrong: Int) {
+        self.perfect = perfect
+        self.good = good
+        self.miss = miss
+        self.wrong = wrong
+    }
+
     public var total: Int { perfect + good + miss }
 
     /// Điểm 0...1

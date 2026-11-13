@@ -10,6 +10,16 @@ public struct LessonSummary: Hashable {
     public var duration: TimeInterval
     public var passed: Bool
     public var perfect: Bool
+
+    public init(xp: Int, accuracy: Double, stars: Int, mistakes: Int, duration: TimeInterval, passed: Bool, perfect: Bool) {
+        self.xp = xp
+        self.accuracy = accuracy
+        self.stars = stars
+        self.mistakes = mistakes
+        self.duration = duration
+        self.passed = passed
+        self.perfect = perfect
+    }
 }
 
 /// Quản lý tiến trình một bài học kiểu Duolingo:
