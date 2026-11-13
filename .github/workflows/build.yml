@@ -17,8 +17,14 @@ concurrency:
 
 jobs:
   build:
-    name: Kiểm thử & build IPA
-    runs-on: macos-15
+    name: Build IPA (${{ matrix.os }})
+    # Chạy trên cả máy Intel và Apple Silicon: máy macOS arm64 của GitHub đôi khi
+    # bị thiếu, chỉ cần một máy chạy được là có file IPA.
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [macos-15-intel, macos-15]
+    runs-on: ${{ matrix.os }}
     timeout-minutes: 45
     permissions:
       contents: write
@@ -65,7 +71,7 @@ jobs:
       - name: Tải lên artifact
         uses: actions/upload-artifact@v4
         with:
-          name: PianoGo-ipa
+          name: PianoGo-ipa-${{ matrix.os }}
           path: PianoGo.ipa
           if-no-files-found: error
 
@@ -73,12 +79,12 @@ jobs:
         if: failure()
         uses: actions/upload-artifact@v4
         with:
-          name: xcodebuild-log
+          name: xcodebuild-log-${{ matrix.os }}
           path: xcodebuild.log
           if-no-files-found: ignore
 
       - name: Tạo Release
-        if: ${{ startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release) }}
+        if: ${{ matrix.os == 'macos-15-intel' && (startsWith(github.ref, 'refs/tags/v') || (github.event_name == 'workflow_dispatch' && inputs.create_release)) }}
         uses: softprops/action-gh-release@v2
         with:
           tag_name: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('build-{0}', github.run_number) }}
@@ -88,10 +94,8 @@ jobs:
 
   screenshots:
     name: Chụp màn hình trên trình giả lập iPad
-    # Chạy sau khi build xong để không chiếm thêm máy macOS cùng lúc.
-    needs: build
     if: github.event_name == 'workflow_dispatch' || github.ref != 'refs/heads/main'
-    runs-on: macos-15
+    runs-on: macos-15-intel
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
