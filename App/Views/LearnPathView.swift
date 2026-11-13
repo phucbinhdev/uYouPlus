@@ -74,6 +74,9 @@ struct LearnPathView: View {
                 }
             }
             .onAppear {
+                if let id = LaunchOptions.lessonID, activeLesson == nil, let lesson = Curriculum.lesson(id: id) {
+                    activeLesson = lesson
+                }
                 if let next = Curriculum.nextLesson(progress: app.progress) {
                     DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
                         withAnimation { proxy.scrollTo(next.id, anchor: .center) }

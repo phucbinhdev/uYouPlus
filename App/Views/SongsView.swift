@@ -44,6 +44,9 @@ struct SongsView: View {
             }
         }
         .background(Color.white)
+        .onAppear {
+            if let id = LaunchOptions.songID, playing == nil { playing = SongLibrary.song(id: id) }
+        }
         .fullScreenCover(item: $playing) { song in
             SongPlayerView(song: song, strictOctave: app.settings.strictOctave) { playing = nil }
                 .environmentObject(app)

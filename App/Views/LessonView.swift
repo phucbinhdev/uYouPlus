@@ -30,7 +30,11 @@ final class LessonModel: ObservableObject {
     init(lesson: Lesson, unlimitedHearts: Bool) {
         self.lesson = lesson
         self.unlimitedHearts = unlimitedHearts
-        session = LessonSession(exercises: lesson.makeExercises(), unlimitedHearts: unlimitedHearts, baseXP: lesson.baseXP)
+        var exercises = lesson.makeExercises()
+        if LaunchOptions.lessonID == lesson.id, LaunchOptions.skipExercises > 0 {
+            exercises = Array(exercises.dropFirst(min(LaunchOptions.skipExercises, exercises.count - 1)))
+        }
+        session = LessonSession(exercises: exercises, unlimitedHearts: unlimitedHearts, baseXP: lesson.baseXP)
     }
 
     func finishExercise(_ result: ExerciseResult) {

@@ -40,7 +40,15 @@ struct RootView: View {
             }
         }
         .onAppear {
-            if !app.settings.hasSeenOnboarding { showOnboarding = true }
+            LaunchOptions.applyDemoProgress(to: app)
+            if let t = LaunchOptions.tab { tab = t }
+            if LaunchOptions.openConnect {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.3) { showConnect = true }
+            }
+            let screenshot = LaunchOptions.isScreenshotMode && LaunchOptions.tab != nil
+            if !app.settings.hasSeenOnboarding && !screenshot && LaunchOptions.lessonID == nil && LaunchOptions.songID == nil {
+                showOnboarding = true
+            }
         }
         .onChange(of: scenePhase) { phase in
             if phase == .active {

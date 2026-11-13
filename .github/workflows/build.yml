@@ -83,3 +83,26 @@ jobs:
           name: Piano Go ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || format('build {0}', github.run_number) }}
           files: PianoGo.ipa
           prerelease: ${{ !startsWith(github.ref, 'refs/tags/v') }}
+
+  screenshots:
+    name: Chụp màn hình trên trình giả lập iPad
+    runs-on: macos-15
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cài XcodeGen
+        run: brew install xcodegen
+
+      - name: Tạo project Xcode
+        run: xcodegen generate
+
+      - name: Build, chạy và chụp màn hình
+        run: ./scripts/screenshots.sh
+
+      - name: Tải lên ảnh chụp
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: PianoGo-screenshots
+          path: screenshots
+          if-no-files-found: ignore
