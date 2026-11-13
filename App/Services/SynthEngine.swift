@@ -43,7 +43,12 @@ final class SynthEngine: ObservableObject {
         core.sampleRate = sampleRate
         let core = self.core
         let node = AVAudioSourceNode(format: format) { _, timestamp, frameCount, audioBufferList -> OSStatus in
-            let buffers = UnsafeMutableAudioBufferListPointer(audioBufferList)
+            // Tự dựng mảng AudioBuffer thay cho UnsafeMutableAudioBufferListPointer
+            // (kiểu này không có trên Mac Catalyst arm64).
+            let buffersStart = UnsafeMutableRawPointer(audioBufferList)
+                .advanced(by: MemoryLayout<AudioBufferList>.offset(of: \.mBuffers)!)
+                .assumingMemoryBound(to: AudioBuffer.self)
+            let buffers = UnsafeMutableBufferPointer(start: buffersStart, count: Int(audioBufferList.pointee.mNumberBuffers))
             guard let first = buffers.first, let data = first.mData else { return noErr }
             let samples = data.assumingMemoryBound(to: Float.self)
             let ts = timestamp.pointee

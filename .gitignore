@@ -1,5 +1,6 @@
 # Xcode
 build/
+build-*/
 DerivedData/
 *.xcuserstate
 xcuserdata/
@@ -16,3 +17,4 @@ Package.resolved
 *.ipa
 Payload/
 App/Info.plist
+dist/
